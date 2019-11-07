@@ -107,12 +107,12 @@ int main() {
           }
 
           // for collision avoidance
-          bool too_close = false;             // indicator to slow down speed and also to maneuver to different lane
-          bool left_lane_occupied = false;    // indicator to check if the left lane is safe to maneuver or not
-          bool right_lane_occupied = false;   // indicator to check if the right lane is safe to maneuver ot not
+          bool tooClose = false;             // indicator to slow down speed and also to maneuver to different lane
+          bool leftLaneOccupied = false;    // indicator to check if the left lane is safe to maneuver or not
+          bool rightLaneOccupied = false;   // indicator to check if the right lane is safe to maneuver ot not
 
-          double left_lane_vehicle_speed = 9999.0;
-          double right_lane_vehicle_speed = 9999.0;
+          double leftLaneVehicleSpeed = 9999.0;
+          double rightLaneVehicleSpeed = 9999.0;
 
           // find ref_v to use
           for(int i=0; i<sensor_fusion.size(); i++){
@@ -121,63 +121,63 @@ int main() {
             float d = sensor_fusion[i][6];
             double vx = sensor_fusion[i][3];
             double vy = sensor_fusion[i][4];
-            double check_speed = sqrt(vx*vx + vy*vy);
+            double checkSpeed = sqrt(vx*vx + vy*vy);
 
             // for current lane - when to maneuver or slow down
-            if (d < (2+4*lane+2) && d > (2+4*lane-2)){
+            if (d < (2 + 4 * lane + 2) && d > (2 + 4 * lane - 2)){
 
               double check_car_s = sensor_fusion[i][5];
-              check_car_s += ((double)prev_size*0.02*check_speed);
+              check_car_s += ((double)prev_size * 0.02 * checkSpeed);
 
               // check s value greater than ego vehicle and s gap
-              if((check_car_s > car_s) && ((check_car_s - car_s)<30)){
-                too_close = true;
+              if((check_car_s > car_s) && ((check_car_s - car_s) < 30)){
+                tooClose = true;
               }
             }
             // check distance of other vehicle in left lane - we will only choose a left lane when we are in lane 1 and lane 2
             // ie. either we are in middle lane or rightmost lane
-            else if ((lane == 1 || lane == 2) && d < (2+4*(lane - 1)+2) && d > (2+4*(lane-1)-2)){
+            else if ((lane == 1 || lane == 2) && d < (2 + 4 * (lane - 1) + 2) && d > (2 + 4 * (lane - 1) - 2)){
 
               double check_car_left_s = sensor_fusion[i][5];
-              check_car_left_s += ((double)prev_size*0.02*check_speed);
-              left_lane_vehicle_speed = check_speed;
+              check_car_left_s += ((double)prev_size * 0.02 * checkSpeed);
+              leftLaneVehicleSpeed = checkSpeed;
 
               // checking if its safe to maneuver or not.
               // when changing lane we need to make sure that the vehicle on that lane is at a safe distance to carry out a safe maneuver
               if ( ((check_car_left_s > car_s) && (check_car_left_s - car_s) < 30 ) || ( (check_car_left_s < car_s) && (car_s - check_car_left_s) < 15)){
-                left_lane_occupied = true;
+                leftLaneOccupied = true;
               }
             }
             // check distance of other vehicle in right lane - we will only choose a right lane when we are in lane 0 and lane 1
             // ie. either we are in leftmost lane or middle lane
-            else if ((lane == 0 || lane == 1) && d < (2+4*(lane+1)+2) && d > (2+4*(lane+1)-2)){
+            else if ((lane == 0 || lane == 1) && d < (2 + 4 * (lane + 1) + 2) && d > (2 + 4 * (lane + 1) - 2)){
 
               double check_car_right_s = sensor_fusion[i][5];
-              check_car_right_s += ((double)prev_size*0.02*check_speed);
-              right_lane_vehicle_speed = check_speed;
+              check_car_right_s += ((double)prev_size * 0.02 * checkSpeed);
+              rightLaneVehicleSpeed = checkSpeed;
 
               // checking if its safe to maneuver or not.
               // when changing lane we need to make sure that the vehicle on that lane is at a safe distance to carry out a safe maneuver
               if ( ((check_car_right_s > car_s) && (check_car_right_s - car_s) < 30) || ( (check_car_right_s < car_s) && (car_s - check_car_right_s) < 15)){
-                right_lane_occupied = true;
+                rightLaneOccupied = true;
               }
             }
           }
 
-          if (too_close){
+          if (tooClose){
             ref_vel -= 0.224;
 
             // choosing which lane to maneuver
-            if (left_lane_occupied != true && right_lane_occupied != true && lane == 1){
-              if(left_lane_vehicle_speed > right_lane_vehicle_speed){
+            if (leftLaneOccupied != true && rightLaneOccupied != true && lane == 1){
+              if(leftLaneVehicleSpeed > rightLaneVehicleSpeed){
                 lane-=1;
               } else{
                 lane +=1;
               }
-            } else if (left_lane_occupied != true && lane>0){
+            } else if (leftLaneOccupied != true && lane > 0){
               // switch to left lane
               lane-=1;
-            } else if (right_lane_occupied != true && lane<2){
+            } else if (rightLaneOccupied != true && lane < 2){
               // switch to right lane
               lane+=1;
             }
@@ -227,9 +227,9 @@ int main() {
           }
 
           // in frenet add evenly 30m spaced points ahead of the starting reference
-          vector<double> next_wp0 = getXY(car_s+30, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-          vector<double> next_wp1 = getXY(car_s+60, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-          vector<double> next_wp2 = getXY(car_s+90, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+          vector<double> next_wp0 = getXY(car_s + 30, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+          vector<double> next_wp1 = getXY(car_s + 60, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+          vector<double> next_wp2 = getXY(car_s + 90, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
 
           ptsx.push_back(next_wp0[0]);
           ptsx.push_back(next_wp1[0]);
@@ -291,7 +291,6 @@ int main() {
             next_y_vals.push_back(y_point);
 
           }
-
 
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
